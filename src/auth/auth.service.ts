@@ -13,6 +13,8 @@ import { JwtService } from '@nestjs/jwt';
 import axios from 'axios';
 // import { AuthGuard } from '@nestjs/passport';
 import { googleUserEntity } from './googleUser.entity';
+import * as dotenv from 'dotenv';
+dotenv.config();
 @Injectable()
 export class AuthService {
   constructor(
@@ -217,10 +219,7 @@ export class AuthService {
       );
 
       // Check if the token is valid
-      return (
-        response.data.aud ===
-        '461830920457-1lvnmuiftjb8pfgsodo2m77g8r27d197.apps.googleusercontent.com'
-      );
+      return response.data.aud === process.env.GOOGLE_CLIENT_ID;
     } catch (error) {
       // Handle errors during validation
       console.error('Error validating Google access token:', error.message);
