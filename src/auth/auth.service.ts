@@ -4,16 +4,25 @@ import {
   ConflictException,
   UnauthorizedException,
   ForbiddenException,
-  UseGuards,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { userLoginEntity } from './auth.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { AuthGuard } from '@nestjs/passport';
+import axios from 'axios';
+// import { AuthGuard } from '@nestjs/passport';
+import { googleUserEntity } from './googleUser.entity';
 @Injectable()
 export class AuthService {
+  constructor(
+    @InjectRepository(userLoginEntity)
+    private readonly userRepository: Repository<userLoginEntity>,
+    @InjectRepository(googleUserEntity)
+    private readonly googleRepository: Repository<googleUserEntity>,
+    private readonly jwtService: JwtService,
+  ) {}
+
   async refresh(user: any) {
     const { email, refreshToken } = user;
 
@@ -36,11 +45,7 @@ export class AuthService {
       return error;
     }
   }
-  constructor(
-    @InjectRepository(userLoginEntity)
-    private readonly userRepository: Repository<userLoginEntity>,
-    private readonly jwtService: JwtService,
-  ) {}
+
   saltRounds = 10; // Number of salt rounds to use during hashing
   async getTokens(email: string) {
     const [at, rt] = await Promise.all([
@@ -160,6 +165,65 @@ export class AuthService {
         return false;
       }
     } catch (error) {
+      return false;
+    }
+  }
+
+  async findById(user: any) {
+    console.log('**********checking the existence of the user', user.id);
+    const existingUser = await this.googleRepository.findOne({
+      where: { sub: user.id },
+    });
+    console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&', { existingUser });
+    return existingUser; // Return the user object or null
+  }
+
+  async saveUserId(data: any) {
+    try {
+      const existingUser = await this.googleRepository.findOne({
+        where: { sub: data.id },
+      });
+
+      if (existingUser) {
+        // Existing user found, no need to update data, proceed
+        return {
+          message: 'User already registered',
+        };
+      }
+
+      // User doesn't exist, create a new user
+      const sd = {
+        ...data,
+        givenName: data.given_name,
+        familyName: data.family_name,
+        emailVerified: data.email_verified,
+      };
+      const newUser = this.googleRepository.create(sd);
+      await this.googleRepository.save(newUser);
+
+      return {
+        message: 'User registered successfully',
+      };
+    } catch (error) {
+      throw new NotFoundException(`Failed to register user: ${error.message}`);
+    }
+  }
+
+  async validateGoogleAccessToken(accessToken: string): Promise<boolean> {
+    try {
+      // Make a request to Google's tokeninfo endpoint to validate the access token
+      const response = await axios.get(
+        `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`,
+      );
+
+      // Check if the token is valid
+      return (
+        response.data.aud ===
+        '461830920457-1lvnmuiftjb8pfgsodo2m77g8r27d197.apps.googleusercontent.com'
+      );
+    } catch (error) {
+      // Handle errors during validation
+      console.error('Error validating Google access token:', error.message);
       return false;
     }
   }
