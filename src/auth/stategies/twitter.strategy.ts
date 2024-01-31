@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-twitter';
 import { Injectable } from '@nestjs/common';
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: './local.env' });
 @Injectable()
 export class TwitterStrategy extends PassportStrategy(Strategy, 'twitter') {
   constructor() {
