@@ -14,8 +14,6 @@ export class SessionSerializer extends PassportSerializer {
     user: any,
     done: (err: Error, user: any) => void,
   ): Promise<any> {
-    console.log('serialize user ', user._json);
-    await this.authService.saveUserId(user._json);
     done(null, user); // Store only the user id in the session
   }
 
@@ -23,7 +21,7 @@ export class SessionSerializer extends PassportSerializer {
     userId: any,
     done: (err: Error, user: any) => void,
   ): Promise<any> {
-    console.log('deserialize user ');
+    // console.log('deserialize user ');
     try {
       const user = await this.authService.findById(userId);
       return user ? done(null, user) : done(null, null);

@@ -55,8 +55,7 @@ export class AuthController {
   async logout(@Body() emailId: logoutDto) {
     return await this.authService.logout(emailId.email);
   }
-  // @UseGuards(AuthGuard('local'))
-  @UseGuards(GoogleAuthGuard)
+  @UseGuards(AuthGuard('local'))
   @Get('/check')
   @ApiOperation({ summary: 'checking the route ' })
   check() {
@@ -76,19 +75,10 @@ export class AuthController {
   @ApiOperation({ summary: 'google sso redirect' })
   async googleLoginRedirect(@Req() req, @Res() res) {
     try {
-      // Extract relevant information from the req object
-      const user = req.user._json; // Adjust this based on what you want to include in the response
-
-      // Create a response object with only the necessary data
-      const responseObject = {
-        email: user.email,
-        email_verified: user.email_verified,
-        id: user.sub,
-        name: user.name,
-      };
-      console.log(responseObject);
-
-      res.status(200).json(responseObject);
+      // const user = req.user._json;
+      // const dbData = await this.authService.createLoginForGoogle(user);
+      // res.status(200).json(dbData);
+      res.status(200).json('twitter rediect successful');
     } catch (error) {
       // Handle errors
       console.error(error);
@@ -101,5 +91,20 @@ export class AuthController {
   @ApiOperation({ summary: 'google sso login  fads' })
   async googleLogin() {
     return 'google SSO login';
+  }
+  @UseGuards(AuthGuard('twitter'))
+  @Get('/twitter/login/')
+  @ApiOperation({ summary: 'twitter/google sso login redirect' })
+  async twitterLoginCallback(@Req() req, @Res() res): Promise<void> {
+    // Successful authentication, redirect or handle response
+    res.send(req.user);
+  }
+  @UseGuards(AuthGuard('twitter'))
+  @Get('/home/')
+  @ApiOperation({ summary: 'twitter/ sso login redirect' })
+  async twitterHome(@Req() req, @Res() res): Promise<void> {
+    // Successful authentication, redirect or handle response
+    // console.log(req.user)
+    res.send(req.user);
   }
 }

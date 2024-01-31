@@ -8,6 +8,7 @@ import { AtStrategy, RtStrategy, GoogleStrategy } from './stategies';
 import { PassportModule } from '@nestjs/passport';
 import { SessionSerializer } from 'src/utils/serializer';
 import { googleUserEntity } from './googleUser.entity';
+import { TwitterStrategy } from './stategies/twitter.strategy';
 @Module({
   imports: [
     TypeOrmModule.forFeature([userLoginEntity, googleUserEntity]),
@@ -23,6 +24,7 @@ import { googleUserEntity } from './googleUser.entity';
     AtStrategy,
     RtStrategy,
     GoogleStrategy,
+    TwitterStrategy,
     SessionSerializer,
     { provide: 'AUTH_SERVICE', useClass: AuthService },
   ],

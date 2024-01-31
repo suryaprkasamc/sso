@@ -27,8 +27,7 @@ export class AuthService {
 
   async refresh(user: any) {
     const { email, refreshToken } = user;
-
-    console.log(email, refreshToken);
+    // console.log(email, refreshToken);
 
     try {
       const user = await this.userRepository.findOne({ where: { email } });
@@ -120,7 +119,7 @@ export class AuthService {
     }
   }
   async logout(email: string) {
-    console.log({ email });
+    // console.log({ email });
     try {
       const user = await this.userRepository.findOne({
         where: { email },
@@ -170,16 +169,14 @@ export class AuthService {
       return false;
     }
   }
-
   async findById(user: any) {
-    console.log('**********checking the existence of the user', user.id);
+    // console.log('**********checking the existence of the user', user.id);
     const existingUser = await this.googleRepository.findOne({
       where: { sub: user.id },
     });
-    console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&', { existingUser });
+    // console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&', { existingUser });
     return existingUser; // Return the user object or null
   }
-
   async saveUserId(data: any) {
     try {
       const existingUser = await this.googleRepository.findOne({
@@ -210,7 +207,6 @@ export class AuthService {
       throw new NotFoundException(`Failed to register user: ${error.message}`);
     }
   }
-
   async validateGoogleAccessToken(accessToken: string): Promise<boolean> {
     try {
       // Make a request to Google's tokeninfo endpoint to validate the access token
@@ -222,8 +218,39 @@ export class AuthService {
       return response.data.aud === process.env.GOOGLE_CLIENT_ID;
     } catch (error) {
       // Handle errors during validation
-      console.error('Error validating Google access token:', error.message);
+      // console.error('Error validating Google access token:', error.message);
       return false;
+    }
+  }
+  async createLoginForGoogle(data: any) {
+    const tokens = await this.getTokens(data.email);
+    return {
+      email: data.email,
+      message: 'user logged in successfully ',
+      tokens,
+    };
+  }
+  async getUserDetails(accessToken: string): Promise<any> {
+    try {
+      const response = await axios.get(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(
+          `Failed to fetch user details: ${response.status} - ${response.statusText}`,
+        );
+      }
+    } catch (error) {
+      throw new Error(`Failed to fetch user details: ${error.message}`);
     }
   }
 }

@@ -9,7 +9,7 @@ dotenv.config();
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
-    @Inject('AUTH_SERVICE') private readonly userService: AuthService,
+    @Inject('AUTH_SERVICE') private readonly authService: AuthService,
     // private readonly userService: AuthService,
   ) {
     super({
@@ -52,7 +52,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ): Promise<any> {
-    console.log('*****************************************************',accessToken)
+    await this.authService.saveUserId(profile._json);
+    // console.log('*****************************************************',accessToken)
+    const a = await this.authService.getUserDetails(accessToken)
+    console.log('user details from google', a)
     done(null, profile);
   }
 }
