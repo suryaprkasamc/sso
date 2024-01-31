@@ -54,8 +54,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ): Promise<any> {
     await this.authService.saveUserId(profile._json);
     // console.log('*****************************************************',accessToken)
-    const a = await this.authService.getUserDetails(accessToken)
-    console.log('user details from google', a)
+    const a = await this.authService.getUserDetails(accessToken);
+    console.log('user details from google', a);
     done(null, profile);
   }
 }
